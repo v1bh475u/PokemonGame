@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Position Image</title>
+    <style>
+        /* Optional: CSS styling for the image */
+        #back {
+            position: absolute;
+            top: 50%;
+            /* Center vertically */
+            /* transform: translateY(-50%); */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Image element -->
+    <img id="back" src="./assets/images/ball_small.png" alt="Your Image">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the image element
+            var img = document.getElementById('back');
+
+            // Ensure the image is fully loaded
+            img.onload = function () {
+                // Calculate the left position (75% - half of the image width)
+                var leftPosition = (75 - img.width / 2) + '%';
+
+                // Set the left position of the image
+                img.style.left = leftPosition;
+            };
+        });
+    </script>
+</body>
+
+</html>
