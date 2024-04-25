@@ -75,6 +75,10 @@ window.onload = async function () {
         StatsChecker(pokedex[1]['base_stats'][i]);
     }
     document.getElementById('poke-stats');
+    // let url = "https://pokeapi.co/api/v2/pokemon/?limit=151";
+    // let res = await fetch(url);
+    // let data = await res.json();
+
     for (let i = 2; i <= pokecount; i++) {
         await getPokemon(i, 'Kanto');
         let pokemon = document.createElement("div");
