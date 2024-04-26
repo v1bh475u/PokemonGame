@@ -1,9 +1,10 @@
 let battlebacks = ['cave1', 'cave2', 'cave3', 'champion1', 'champion2', 'city', 'city_eve', 'distortion', 'forest', 'forest_eve', 'forest_night', 'field', 'field', 'field_eve', 'field_night', 'water'];
 let playerteam = {};
 let enemyteam = {};
-// import typelookup from '../assets/json/type-lookup.json' assert { type: 'json' };
-
-let base_statmap = { 'hp': 0, 'attack': 1, 'defense': 2, 'special-attack': 3, 'special-defense': 4, 'speed': 5 };
+let playermoves = {};
+let enemymoves = {};
+let playermon = {};
+let enemymon = {};
 let typelookup = {
     "normal": {
         "normal": 1,
@@ -366,33 +367,36 @@ let typelookup = {
         "fairy": 1
     }
 };
-async function getPokemonmoves(id) {
-    let data = await getPokemon(id);
-    let moves = data['moves'];
-    let chosen_moves = { 0: null, 1: null, 2: null, 3: null };
-    for (let i = 0; i < 4; i++) {
-        let x = Math.floor(Math.random() * moves.length) % moves.length;
+async function getPokemonmoves(pokemon) {
+    let moves = pokemon['moves'];
+    let chosen_moves = {};
+    let i = 0;
+    while (Object.getOwnPropertyNames(chosen_moves).length < 4) {
+        let x = Math.floor(Math.random() * Object.getOwnPropertyNames(moves).length) % Object.getOwnPropertyNames(moves).length;
         let chosen_move = {};
-        chosen_move['name'] = moves[x]['move']['name'];
-        let response = await fetch(moves[x]['move']['url']);
-        let data = await response.json();
-        chosen_move['power'] = data['power'];
-        chosen_move['type'] = data['type']['name'];
-        chosen_move['accuracy'] = data['accuracy'];
-        chosen_move['damage_class'] = data['damage_class']['name'];
-        chosen_move['target'] = data['target']['name'];
-        if (data['meta']) {
-            chosen_move['crit_rate'] = data['meta']['crit_rate'];
-            chosen_move['drain'] = data['meta']['drain'];
-            chosen_move['flinch_chance'] = data['meta']['flinch_chance'];
-            chosen_move['healing'] = data['meta']['healing'];
-            chosen_move['stat_chance'] = data['meta']['stat_chance'];
+        if (!(chosen_moves.hasOwnProperty(moves[x]['move']['name']))) {
+            chosen_move['name'] = moves[x]['move']['name'];
+            let response = await fetch(moves[x]['move']['url']);
+            let data = await response.json();
+            chosen_move['power'] = data['power'];
+            chosen_move['type'] = data['type']['name'];
+            chosen_move['accuracy'] = data['accuracy'];
+            chosen_move['damage_class'] = data['damage_class']['name'];
+            chosen_move['target'] = data['target']['name'];
+            if (data['meta']) {
+                chosen_move['crit_rate'] = data['meta']['crit_rate'];
+                chosen_move['drain'] = data['meta']['drain'];
+                chosen_move['flinch_chance'] = data['meta']['flinch_chance'];
+                chosen_move['healing'] = data['meta']['healing'];
+                chosen_move['stat_chance'] = data['meta']['stat_chance'];
+            }
+            chosen_move['priority'] = data['priority'];
+            chosen_move['max_pp'] = data['pp'];
+            chosen_move['pp'] = data['pp'];
+            chosen_move['stat_changes'] = data['stat_changes'];
+            chosen_moves[i] = chosen_move;
+            i++;
         }
-        chosen_move['priority'] = data['priority'];
-        chosen_move['max_pp'] = data['pp'];
-        chosen_move['pp'] = data['pp'];
-        chosen_move['stat_changes'] = data['stat_changes'];
-        chosen_moves[i] = chosen_move;
     }
     return chosen_moves;
 };
@@ -426,25 +430,21 @@ function factorcalc(move, battlers) {
         factor *= typelookup[move['type']][battlers[1]['types'][i]['type']['name']];
     }
     if (factor < 1) {
-        setTimeout(() => {
-            document.getElementById('DialogBox').innerText = "It was not very effective!";
-            let effectmusic = new Audio('./assets/Music/Battle damage weak.ogg');
-            effectmusic.play();
-        }, 4000);
+        document.getElementById('DialogBox').innerText = "It was not very effective!";
+        let effectmusic = new Audio('./assets/Music/Battle damage weak.ogg');
+        effectmusic.play();
     } else if (factor == 1) {
-        setTimeout(() => {
-            let effectmusic = new Audio('./assets/Music/Battle damage normal.ogg');
-            effectmusic.play();
-        }, 4000);
+        let effectmusic = new Audio('./assets/Music/Battle damage normal.ogg');
+        effectmusic.play();
     } else {
-        setTimeout(() => {
-            document.getElementById('DialogBox').innerText = "It's super effective!";
-            let effectmusic = new Audio('./assets/Music/Battle damage strong.ogg');
-            effectmusic.play();
-        }, 4000);
+        document.getElementById('DialogBox').innerText = "It's super effective!";
+        let effectmusic = new Audio('./assets/Music/Battle damage super.ogg');
+        effectmusic.play();
     }
+    setTimeout(() => { }, 1000);
     return factor;
-}
+};
+
 function move(move, battlers) {
     let damage = 0;
     switch (move.damage_class) {
@@ -459,166 +459,185 @@ function move(move, battlers) {
             break;
         }
         case 'physical': {
-            damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['attack'] * move['power'] / battlers[1]['battle_stats']['defense'] / 50));
-            damage *= factorcalc(move, battlers);
-            battlers[1]['battle_stats']['hp'] -= damage % battlers[1]['battle_stats']['max_hp'];
+            if (move.accuracy > Math.floor(Math.random() * 50)) {
+                damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['attack'] * move['power'] / battlers[1]['battle_stats']['defense'] / 50));
+                damage *= factorcalc(move, battlers);
+                setTimeout(() => { }, 4000);
+                console.log(damage);
+                battlers[1]['battle_stats']['hp'] = Math.max(battlers[1]['battle_stats']['hp'] - damage, 0);
+            } else {
+
+                document.getElementById('DialogBox').innerText = "The move missed!";
+                setTimeout(() => { }, 4000);
+            }
             break;
         }
         case 'special': {
-            damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['special-attack'] * move['power'] / battlers[1]['battle_stats']['special-defense'] / 50));
-            damage *= factorcalc(move, battlers);
-            battlers[1]['battle_stats']['hp'] -= damage % battlers[1]['battle_stats']['max_hp'];
+            if (move.accuracy > Math.floor(Math.random() * 50)) {
+                damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['special-attack'] * move['power'] / battlers[1]['battle_stats']['special-defense'] / 50));
+                damage *= factorcalc(move, battlers);
+                setTimeout(() => { }, 4000);
+                console.log(damage);
+                battlers[1]['battle_stats']['hp'] = Math.max(battlers[1]['battle_stats']['hp'] - damage, 0);
+            } else {
+
+                document.getElementById('DialogBox').innerText = "The move missed!";
+                setTimeout(() => { }, 4000);
+            }
             break;
         }
 
     }
 };
 
-function turn(player_move, enemy_move, playermon, enemymon) {
+function turn(player_move, enemy_moves, playermon, enemymon) {
     console.log(player_move);
+    let enemy_move = enemy_moves[Math.floor(Math.random() * 4) % 4];
+    console.log(enemy_move);
     let player_speed = playermon['stats'][5]['base_stat'];
     let enemy_speed = enemymon['stats'][5]['base_stat'];
     if (player_move['pp'] != 0) {
-        setTimeout(() => {
+        if (player_speed >= enemy_speed) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-        }, 4000);
-        move(player_move, [playermon, enemymon]);
-        setTimeout(() => {
+            setTimeout(() => { }, 4000);
+            move(player_move, [playermon, enemymon]);
+            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-        }, 4000);
-        move(enemy_move, [enemymon, playermon]);
-        let damage = 1;
-        if (player_speed > enemy_speed) {
-            if (player_move['accuracy'] > Math.floor(Math.random() * 50)) {
-                if (player_move['damage_class'] == 'physical') {
-                    console.log(playermon['level'], playermon['battle_stats']['attack'], player_move['power'], enemymon['battle_stats']['defense']);
-                    damage = Math.floor(Math.floor(Math.floor(2 * playermon['level'] / 5 + 2) * playermon['battle_stats']['attack'] * player_move['power'] / enemymon['battle_stats']['defense'] / 50));
-                    console.log(damage);
-                    for (let i = 0; i < enemymon['types'].length; i++) {
-                        damage *= typelookup[player_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                } else if (player_move['damage_class'] == 'special') {
-                    damage = Math.floor(Math.floor(Math.floor(2 * playermon['level'] / 5 + 2) * playermon['battle_stats']['special-attack'] * player_move['power'] / enemymon['battle_stats']['special-defense'] / 50));
-                    for (let i = 0; i < enemymon['types'].length; i++) {
-                        damage *= typelookup[player_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                }
-                console.log(damage);
-                enemymon['battle_stats']['hp'] -= damage;
-                document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
-            } else {
-                document.getElementById('DialogBox').innerText = "The move missed!";
-            }
-            if (enemy_move['accuracy'] > Math.floor(Math.random() * 100)) {
-                if (enemy_move['damage_class'] == 'physical') {
-                    console.log(playermon['level'], playermon['battle_stats']['attack'], player_move['power'], enemymon['battle_stats']['defense']);
-                    damage = Math.floor(Math.floor(Math.floor(2 * enemymon['level'] / 5 + 2) * enemymon['battle_stats']['attack'] * enemy_move['power'] / playermon['battle_stats']['defense'] / 50));
-                    for (let i = 0; i < playermon['types'].length; i++) {
-                        damage *= typelookup[enemy_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                } else if (enemy_move['damage_class'] == 'special') {
-                    damage = Math.floor(Math.floor(Math.floor(2 * enemymon['level'] / 5 + 2) * enemymon['battle_stats']['special-attack'] * enemy_move['power'] / playermon['battle_stats']['special-defense'] / 50));
-                    for (let i = 0; i < playermon['types'].length; i++) {
-                        damage *= typelookup[enemy_move['type']][playermon['types'][i]['type']['name']];
-                    }
-                }
-                console.log(damage);
-                playermon['battle_stats']['hp'] -= damage;
-                document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            } else {
-                document.getElementById('DialogBox').innerText = "The move missed!";
-            }
+            setTimeout(() => { }, 4000);
+            move(enemy_move, [enemymon, playermon]);
+            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
         } else {
-            if (enemy_move['accuracy'] > Math.floor(Math.random() * 50)) {
-                if (enemy_move['damage_class'] == 'physical') {
-                    console.log(playermon['level'], playermon['battle_stats']['attack'], player_move['power'], enemymon['battle_stats']['defense']);
-                    damage = Math.floor(Math.floor(Math.floor(2 * enemymon['level'] / 5 + 2) * enemymon['battle_stats']['attack'] * enemy_move['power'] / playermon['battle_stats']['defense'] / 50));
-                    for (let i = 0; i < enemymon['types'].length; i++) {
-                        damage *= typelookup[enemy_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                } else if (enemy_move['damage_class'] == 'special') {
-                    damage = Math.floor(Math.floor(Math.floor(2 * enemymon['level'] / 5 + 2) * enemymon['battle_stats']['special-attack'] * enemy_move['power'] / playermon['battle_stats']['special-defense'] / 50));
-                    for (let i = 0; i < playermon['types'].length; i++) {
-                        damage *= typelookup[enemy_move['type']][playermon['types'][i]['type']['name']];
-                    }
-                }
-                console.log(damage);
-                playermon['battle_stats']['hp'] -= damage;
-                document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            } else {
-                document.getElementById('DialogBox').innerText = "The move missed!";
-            }
-            if (player_move['accuracy'] > Math.floor(Math.random() * 100)) {
-                if (player_move['damage_class'] == 'physical') {
-                    console.log(playermon['level'], playermon['battle_stats']['attack'], player_move['power'], enemymon['battle_stats']['defense']);
-                    damage = Math.floor(Math.floor(Math.floor(2 * playermon['level'] / 5 + 2) * playermon['battle_stats']['attack'] * player_move['power'] / enemymon['battle_stats']['defense'] / 50));
-                    for (let i = 0; i < enemymon['types'].length; i++) {
-                        damage *= typelookup[player_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                } else if (player_move['damage_class'] == 'special') {
-                    damage = Math.floor(Math.floor(Math.floor(2 * playermon['level'] / 5 + 2) * playermon['battle_stats']['special-attack'] * player_move['power'] / enemymon['battle_stats']['special-defense'] / 50));
-                    for (let i = 0; i < enemymon['types'].length; i++) {
-                        damage *= typelookup[player_move['type']][enemymon['types'][i]['type']['name']];
-                    }
-                }
-                console.log(damage);
-                enemymon['battle_stats']['hp'] -= damage;
-                document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
-            } else {
-                document.getElementById('DialogBox').innerText = "The move missed!";
-            }
+            document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
+            setTimeout(() => { }, 4000);
+            move(enemy_move, [enemymon, playermon]);
+            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
+            document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
+            setTimeout(() => { }, 4000);
+            move(player_move, [playermon, enemymon]);
+            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
         }
-        // }
-        console.log(playermon['battle_stats']['hp']);
-        console.log(enemymon['battle_stats']['hp']);
+        console.log('playermon', playermon['battle_stats']['hp']);
+        console.log('enemymon', enemymon['battle_stats']['hp']);
         enemy_move['pp']--;
         player_move['pp']--;
+        if (enemymon['battle_stats']['hp'] <= 0) {
+            setTimeout(() => {
+                document.getElementById('front').remove();
+                document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
+                enemnymonchoice();
+            }, 1000);
+        }
         if (playermon['battle_stats']['hp'] <= 0) {
             setTimeout(() => {
+                document.getElementById('back').remove();
                 document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
             }, 1000);
-            document.getElementById('DialogBox').innerText = "Choose another pokemon!";
-            document.getElementById('back').remove();
-        }
-        if (enemymon['battle_stats']['hp'] <= 0) {
-            document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
-            document.getElementById('front').remove();
+            setTimeout(() => {
+                document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+                switchmonchoice();
+            }, 4000);
+
         }
         game(playerteam, enemyteam);
     } else {
         document.getElementById('DialogBox').innerText = "There's no pp left for this move!";
-        // turn(player_move, enemy_move, playermon, enemymon);
+        setTimeout(() => { }, 4000);
+        choice();
     }
 };
 
+async function enemnymonchoice() {
+    enemymoves = {};
+    let x = 0;
+    while (enemymon['battle_stats']['hp'] <= 0) {
+        x = Math.floor(Math.random() * 6) % 6;
+    }
+    let front = enemyteam[x];
+    let img = document.createElement('img');
+    img.src = front['sprites']['other']['showdown']['front_default'];
+    img.setAttribute('id', 'front');
+    img.style.position = 'absolute';
+    img.style.bottom = '60%';
+    img.style.margin = '0 auto';
+    document.getElementById('battler1').appendChild(img);
+    enemymon = enemyteam[x];
+    document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+    for (let i = 0; i < 4; i++) {
+        x = Math.floor(Math.random() * enemymon.moves.length) % enemymon.moves.length;
+        let chosen_move = {};
+        chosen_move['name'] = enemymon.moves[x]['move']['name'];
+        let response = await fetch(enemymon.moves[x]['move']['url']);
+        let data = await response.json();
+        chosen_move['power'] = data['power'];
+        chosen_move['type'] = data['type']['name'];
+        chosen_move['accuracy'] = data['accuracy'];
+        chosen_move['damage_class'] = data['damage_class']['name'];
+        chosen_move['target'] = data['target']['name'];
+        if (data['meta']) {
+            chosen_move['crit_rate'] = data['meta']['crit_rate'];
+            chosen_move['drain'] = data['meta']['drain'];
+            chosen_move['flinch_chance'] = data['meta']['flinch_chance'];
+            chosen_move['healing'] = data['meta']['healing'];
+            chosen_move['stat_chance'] = data['meta']['stat_chance'];
+        }
+        chosen_move['priority'] = data['priority'];
+        chosen_move['max_pp'] = data['pp'];
+        chosen_move['pp'] = data['pp'];
+        chosen_move['stat_changes'] = data['stat_changes'];
+        enemymoves[i] = chosen_move;
+    }
+}
 function game(playerteam, enemyteam) {
     let win = 0;
-    let gameover = 0;
-    for (let i = 0; i < playerteam.length; i++) {
+    let gameover = 1;
+    for (let i = 0; i < Object.getOwnPropertyNames(playerteam).length; i++) {
         win |= (playerteam[i]['battle_stats']['hp'] >= 0);
     }
     if (win) {
-        for (let i = 0; i < enemyteam.length; i++) {
+        for (let i = 0; i < Object.getOwnPropertyNames(enemyteam).length; i++) {
             gameover &= (enemyteam[i]['battle_stats']['hp'] <= 0);
         }
     }
     if (gameover) {
         if (win) {
             document.getElementById('DialogBox').innerText = "You win!";
+            let victorymusic = new Audio('./assets/Music/Battle victory.ogg');
+            victorymusic.play();
         } else
             document.getElementById('DialogBox').innerText = "You lose!";
     } else {
-        document.getElementById('DialogBox').innerText = "What will " + playerteam[0]['name'] + " do?";
+        choice();
     }
 };
-async function gameloop() {
-    let music = document.createElement('audio');
-    let sr = document.createElement("source");
-    sr.setAttribute("src", "./assets/Music/fireleafbattle.ogg");
-    sr.setAttribute("type", "audio/ogg");
-    music.appendChild(sr);
-    music.autoplay = true;
-    document.body.appendChild(music);
+
+function choice() {
+    document.getElementById('DialogBox').innerText = "Would you like to battle?";
+    document.getElementById('action').innerHTML = "";
+    let start = document.createElement('button');
+    start.innerText = "Switch";
+    start.setAttribute('id', 'switch');
+    document.getElementById('action').appendChild(start);
+    document.getElementById('switch').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; switchmonchoice(); });
+    start = document.createElement('button');
+    start.innerText = "Attack";
+    start.setAttribute('id', 'attack');
+    document.getElementById('action').appendChild(start);
+    document.getElementById('attack').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; attackchoice(playermoves, enemymoves); });
+};
+
+function gameloop() {
+    let battlemusic = new Audio('./assets/Music/fireleafbattle.ogg');
+    battlemusic.loop = true;
+    document.getElementById('DialogBox').innerText = "Would you like to battle?";
+    let start = document.createElement('button');
+    start.innerText = "Start";
+    start.setAttribute('id', 'start');
+    document.getElementById('action').appendChild(start);
+    document.getElementById('start').addEventListener('click', () => { battlemusic.play(); document.getElementById('action').innerHTML = ""; battle() });
     let x = Math.floor(Math.random() * 50) % 16;
     document.getElementById('battle-frame').style.backgroundImage = "url(./assets/Graphics/BattleBG/" + battlebacks[x] + "_bg.png)";
     document.getElementById('battle-frame').style.backgroundSize = "cover";
@@ -634,32 +653,12 @@ async function gameloop() {
         document.getElementById('base0').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
         document.getElementById('base1').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
     }
-    x = Math.floor(Math.random() * 500) % 500;
-    let y = Math.floor(Math.random() * 500) % 500;
-    front = await getPokemon(x);
-    back = await getPokemon(y);
-    let battle_stats = {};
-    front['level'] = 100;
-    back['level'] = 100;
-    for (let i = 0; i < 6; i++) {
-        if (back['stats'][i]['stat']['name'] == 'hp') {
-            battle_stats[back['stats'][i]['stat']['name']] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 110;
-            battle_stats['max_hp'] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 110;
-        } else
-            battle_stats[back['stats'][i]['stat']['name']] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 5;
-    }
-    back['battle_stats'] = battle_stats;
-    battle_stats = {};
-    for (let i = 0; i < 6; i++) {
-        if (front['stats'][i]['stat']['name'] == 'hp') {
-            battle_stats[front['stats'][i]['stat']['name']] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 110;
-            battle_stats['max_hp'] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 5;
-        } else
-            battle_stats[front['stats'][i]['stat']['name']] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 5;
-    }
-    front['battle_stats'] = battle_stats;
-    playerteam[0] = back;
-    enemyteam[0] = front;
+};
+
+async function battle() {
+    await generateTeams();
+    let back = playerteam[0];
+    let front = enemyteam[0];
     console.log(front);
     console.log(back);
     let img = document.createElement('img');
@@ -676,10 +675,12 @@ async function gameloop() {
     img.style.bottom = '60%';
     img.style.margin = '0 auto';
     document.getElementById('battler0').appendChild(img);
-    let playermon = playerteam[0];
-    let enemymon = enemyteam[0];
-    let player_moves = await getPokemonmoves(playermon['id']);
-    let enemy_moves = await getPokemonmoves(enemymon['id']);
+    playermon = playerteam[0];
+    enemymon = enemyteam[0];
+    playermoves = await getPokemonmoves(playermon);
+    playermon.battle_moves = playermoves;
+    enemymoves = await getPokemonmoves(enemymon);
+    enemymon.battle_moves = enemymoves;
     let hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
@@ -687,6 +688,7 @@ async function gameloop() {
     hp_bar.style.backgroundColor = 'green';
     hp_bar.setAttribute('id', 'player_hp_bar')
     document.getElementById('battler0').appendChild(hp_bar);
+    document.getElementById('player_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
     hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
@@ -694,18 +696,124 @@ async function gameloop() {
     hp_bar.style.backgroundColor = 'green';
     hp_bar.setAttribute('id', 'enemy_hp_bar')
     document.getElementById('battler1').appendChild(hp_bar);
+    document.getElementById('enemy_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
+    document.getElementById('DialogBox').innerText = "What will you do?";
+    let choice = document.createElement('button');
+    choice.innerText = "Switch";
+    choice.setAttribute('id', 'switch');
+    document.getElementById('action').appendChild(choice);
+    document.getElementById('switch').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; switchmonchoice(); });
+    choice = document.createElement('button');
+    choice.innerText = "Attack";
+    choice.setAttribute('id', 'attack');
+    document.getElementById('action').appendChild(choice);
+    document.getElementById('attack').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; attackchoice(playermoves, enemymoves); });
+};
+
+function attackchoice(playermoves, enemymoves) {
     for (let i = 0; i < 4; i++) {
         let move = document.createElement('button');
-        move.innerText = player_moves[i]['name'];
+        move.innerText = playermoves[i]['name'];
         move.setAttribute('id', 'move' + i.toString());
         document.getElementById('action').appendChild(move);
-        document.getElementById('move' + i.toString()).addEventListener('click', () => { turn(player_moves[i], enemy_moves[i], playerteam[0], enemyteam[0]) });
+        document.getElementById('move' + i.toString()).addEventListener('click', () => { turn(playermoves[i], enemymoves, playermon, enemymon) });
     }
+};
 
-}
 async function getPokemon(id) {
     let response = await fetch("https://pokeapi.co/api/v2/pokemon/" + id.toString());
     let data = await response.json();
     return data;
+};
+
+async function generateTeams() {
+    for (let i = 0; i < 6; i++) {
+
+        let x = 0;
+        while (x === 0)
+            x = Math.floor(Math.random() * 800) % 800;
+        let y = 0;
+        while (y === 0) Math.floor(Math.random() * 800) % 800;
+        front = await getPokemon(x);
+        back = await getPokemon(y);
+        let battle_stats = {};
+        front['level'] = 100;
+        back['level'] = 100;
+        for (let i = 0; i < 6; i++) {
+            if (back['stats'][i]['stat']['name'] == 'hp') {
+                battle_stats[back['stats'][i]['stat']['name']] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 110;
+                battle_stats['max_hp'] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 110;
+            } else
+                battle_stats[back['stats'][i]['stat']['name']] = Math.floor((2 * back['stats'][i]['base_stat'] / 100) * back['level']) + 5;
+        }
+        back['battle_stats'] = battle_stats;
+        battle_stats = {};
+        for (let i = 0; i < 6; i++) {
+            if (front['stats'][i]['stat']['name'] == 'hp') {
+                battle_stats[front['stats'][i]['stat']['name']] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 110;
+                battle_stats['max_hp'] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 110;
+            } else
+                battle_stats[front['stats'][i]['stat']['name']] = Math.floor((2 * front['stats'][i]['base_stat'] / 100) * front['level']) + 5;
+        }
+        front['battle_stats'] = battle_stats;
+        playerteam[i] = back;
+        enemyteam[i] = front;
+    }
+};
+
+function switchmonchoice() {
+    for (let i = 0; i < 6; i++) {
+        let mon = document.createElement('button');
+        mon.innerText = playerteam[i]['name'];
+        mon.setAttribute('id', 'mon' + i.toString());
+        document.getElementById('action').appendChild(mon);
+        document.getElementById('mon' + i.toString()).addEventListener('click', () => { document.getElementById('action').innerHTML = ""; switchmon(i); });
+    }
+};
+
+async function switchmon(index) {
+    if (index == 0 || playerteam[index]['battle_stats']['hp'] <= 0) {
+        document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+    } else {
+        let back = playerteam[index];
+        try {
+            document.getElementById('back').remove();
+        } catch (err) { };
+        let img = document.createElement('img');
+        img.src = back['sprites']['other']['showdown']['back_default'];
+        img.setAttribute('id', 'back');
+        img.style.position = 'absolute';
+        img.style.bottom = '60%';
+        img.style.margin = '0 auto';
+        document.getElementById('battler0').appendChild(img);
+        playermon = playerteam[index];
+        if (playermon.battle_moves == undefined)
+            playermoves = await getPokemonmoves(playermon['id']);
+        else
+            playermoves = playermon.battle_moves;
+        let hp_bar = document.getElementById('player_hp_bar');
+        hp_bar.style.width = (playermon.battle_stats.hp / playermon.battle_stats.max_hp).toString() + '%';
+        hp_bar.style.height = '1rem';
+        hp_bar.style.backgroundColor = 'green';
+        document.getElementById('DialogBox').innerText = "What will you do?";
+        let choice = document.createElement('button');
+        choice.innerText = "Switch";
+        choice.setAttribute('id', 'switch');
+        document.getElementById('action').appendChild(choice);
+        document.getElementById('switch').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; switchmonchoice(); });
+        choice = document.createElement('button');
+        choice.innerText = "Attack";
+        choice.setAttribute('id', 'attack');
+        document.getElementById('action').appendChild(choice);
+        document.getElementById('attack').addEventListener('click', () => { document.getElementById('action').innerHTML = ""; attackchoice(playermoves, enemymoves); });
+    }
+};
+
+function updateBackgroundColor() {
+    let myDiv = document.getElementById(this.id);
+    var percentage = (myDiv.offsetWidth / myDiv.parentElement.offsetWidth) * 100;
+    var red = 255 - (percentage * 255 / 100);
+    var green = percentage * 255 / 100;
+    myDiv.style.backgroundColor = 'rgb(' + red + ', ' + green + ', 0)';
 }
 gameloop();

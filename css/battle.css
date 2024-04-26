@@ -95,3 +95,37 @@ body {
     margin-top: 0.5rem;
     background-color: aquamarine;
 }
+
+.hp-bar {
+    width: 100%;
+    height: 1rem;
+    background-color: #f0f0f0;
+    border: 1px solid black;
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+    z-index: 1;
+}
+
+#start {
+    border-radius: 0.5rem;
+    background-color: yellow;
+    margin: auto;
+}
+
+#switch,
+#attack {
+    border-radius: 0.5rem;
+    margin: auto;
+}
+
+#switch {
+    background-color: lightblue;
+}
+
+#attack {
+    background-color: lightcoral;
+}
+
+#action button {
+    margin: 0.5rem;
+}
