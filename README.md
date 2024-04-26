@@ -17,3 +17,9 @@ In pokedex, you can find data about pokemons upto Galar region.
     - <span style="#1eac4f">Really Great!</span>
     - <span style="#00c2b8">Awesome!</span>
 - You can search for a particulr Pokemon by its name.
+# Battle
+Here, you can duel with computer with a random team chosen for you.
+
+- choose from 4 moves with type advantages enabled
+- can switch between pokemons
+- 

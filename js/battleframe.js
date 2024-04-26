@@ -793,9 +793,10 @@ async function switchmon(index) {
         img.style.margin = '0 auto';
         document.getElementById('battler0').appendChild(img);
         playermon = playerteam[index];
-        if (playermon.battle_moves == undefined)
+        if (playermon.battle_moves == undefined) {
             playermoves = await getPokemonmoves(playermon);
-        else
+            playermon.battle_moves = playermoves;
+        } else
             playermoves = playermon.battle_moves;
         playermon = playerteam[index];
         document.getElementById('player_hp_bar').remove();
