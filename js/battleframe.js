@@ -5,7 +5,7 @@ let playermoves = {};
 let enemymoves = {};
 let playermon = {};
 let enemymon = {};
-import * as typelookup from './JSON/typelookup.json' assert { type: "json" };
+import typelookup from "./../JSON/typelookup.json" with { type: "json" };
 // let typelookup = {
 //     "normal": {
 //         "normal": 1,
