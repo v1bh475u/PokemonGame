@@ -369,9 +369,9 @@ let typelookup = {
 };
 async function getPokemonmoves(pokemon) {
     let moves = pokemon['moves'];
-    let chosen_moves = {};
+    let chosen_moves = [];
     let i = 0;
-    while (Object.getOwnPropertyNames(chosen_moves).length < 4) {
+    while (i < 4) {
         let x = Math.floor(Math.random() * Object.getOwnPropertyNames(moves).length) % Object.getOwnPropertyNames(moves).length;
         let chosen_move = {};
         if (!(chosen_moves.hasOwnProperty(moves[x]['move']['name']))) {
@@ -394,7 +394,7 @@ async function getPokemonmoves(pokemon) {
             chosen_move['max_pp'] = data['pp'];
             chosen_move['pp'] = data['pp'];
             chosen_move['stat_changes'] = data['stat_changes'];
-            chosen_moves[i] = chosen_move;
+            chosen_moves.push(chosen_move);
             i++;
         }
     }
@@ -538,6 +538,7 @@ function turn(player_move, enemy_moves, playermon, enemymon) {
             }, 1000);
             setTimeout(() => {
                 document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+                document.getElementById('action').innerHTML = "";
                 switchmonchoice();
             }, 4000);
 
@@ -610,7 +611,8 @@ function game(playerteam, enemyteam) {
         } else
             document.getElementById('DialogBox').innerText = "You lose!";
     } else {
-        choice();
+        if (playermon.battle_stats.hp >= 0)
+            choice();
     }
 };
 
@@ -684,16 +686,12 @@ async function battle() {
     let hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
-    hp_bar.style.height = '1rem';
-    hp_bar.style.backgroundColor = 'green';
     hp_bar.setAttribute('id', 'player_hp_bar')
     document.getElementById('battler0').appendChild(hp_bar);
     document.getElementById('player_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
     hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
-    hp_bar.style.height = '1rem';
-    hp_bar.style.backgroundColor = 'green';
     hp_bar.setAttribute('id', 'enemy_hp_bar')
     document.getElementById('battler1').appendChild(hp_bar);
     document.getElementById('enemy_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
@@ -733,7 +731,7 @@ async function generateTeams() {
         while (x === 0)
             x = Math.floor(Math.random() * 800) % 800;
         let y = 0;
-        while (y === 0) Math.floor(Math.random() * 800) % 800;
+        while (y === 0) y = Math.floor(Math.random() * 800) % 800;
         front = await getPokemon(x);
         back = await getPokemon(y);
         let battle_stats = {};
@@ -774,6 +772,8 @@ function switchmonchoice() {
 async function switchmon(index) {
     if (index == 0 || playerteam[index]['battle_stats']['hp'] <= 0) {
         document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+        document.getElementById('action').innerHTML = "";
+        switchmonchoice();
     } else {
         let back = playerteam[index];
         try {
@@ -788,13 +788,15 @@ async function switchmon(index) {
         document.getElementById('battler0').appendChild(img);
         playermon = playerteam[index];
         if (playermon.battle_moves == undefined)
-            playermoves = await getPokemonmoves(playermon['id']);
+            playermoves = await getPokemonmoves(playermon);
         else
             playermoves = playermon.battle_moves;
-        let hp_bar = document.getElementById('player_hp_bar');
+        let hp_bar = document.createElement('div');
         hp_bar.style.width = (playermon.battle_stats.hp / playermon.battle_stats.max_hp).toString() + '%';
-        hp_bar.style.height = '1rem';
-        hp_bar.style.backgroundColor = 'green';
+        hp_bar.setAttribute('class', 'hp-bar');
+        hp_bar.setAttribute('id', 'player_hp_bar')
+        document.getElementById('battler0').appendChild(hp_bar);
+        document.getElementById('player_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
         document.getElementById('DialogBox').innerText = "What will you do?";
         let choice = document.createElement('button');
         choice.innerText = "Switch";
@@ -814,6 +816,6 @@ function updateBackgroundColor() {
     var percentage = (myDiv.offsetWidth / myDiv.parentElement.offsetWidth) * 100;
     var red = 255 - (percentage * 255 / 100);
     var green = percentage * 255 / 100;
-    myDiv.style.backgroundColor = 'rgb(' + red + ', ' + green + ', 0)';
+    myDiv.style.backgroundColor = 'rgb(' + red.toString() + ', ' + green.toString() + ', 0)';
 }
 gameloop();
