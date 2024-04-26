@@ -609,6 +609,7 @@ function game(playerteam, enemyteam) {
     if (gameover) {
         if (win) {
             document.getElementById('DialogBox').innerText = "You win!";
+            battlemusic.stop();
             let victorymusic = new Audio('./assets/Music/Battle victory.ogg');
             victorymusic.play();
         } else
@@ -653,7 +654,6 @@ function gameloop() {
     } else if (battlebacks[x].startsWith('city')) {
         document.getElementById('base0').src = "./assets/Graphics/Battlebacks/city_base1.png";
         document.getElementById('base1').src = "./assets/Graphics/Battlebacks/city_base1.png";
-
     } else {
         document.getElementById('base0').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
         document.getElementById('base1').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
@@ -661,6 +661,9 @@ function gameloop() {
 };
 
 async function battle() {
+    let loading = document.createElement('img');
+    loading.src = "./assets/images/loader.gif";
+    document.getElementById('action').appendChild(loading);
     await generateTeams();
     let back = playerteam[0];
     let front = enemyteam[0];
@@ -699,6 +702,7 @@ async function battle() {
     document.getElementById('battler1').appendChild(hp_bar);
     document.getElementById('enemy_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
     document.getElementById('DialogBox').innerText = "What will you do?";
+    document.getElementById('action').innerHTML = "";
     let choice = document.createElement('button');
     choice.innerText = "Switch";
     choice.setAttribute('id', 'switch');
