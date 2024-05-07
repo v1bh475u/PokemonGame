@@ -5,7 +5,9 @@
 }
 
 body {
-    background-color: #f0f0f0;
+    background-image: url('../assets/images/battle_wallpaper.webp');
+    background-size: cover;
+
     font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
@@ -19,7 +21,8 @@ body {
     margin-top: 2rem;
     height: 30rem;
     width: var(--width);
-    background-color: aqua;
+    background-color: whitesmoke;
+    border-radius: 0.5rem;
 }
 
 #player-team,
@@ -85,7 +88,6 @@ body {
     justify-content: center;
     margin: 0 auto;
     margin-top: 0.5rem;
-    background-color: chartreuse;
 }
 
 #DialogBox {
@@ -93,7 +95,7 @@ body {
     height: 5rem;
     margin: 0 auto;
     margin-top: 0.5rem;
-    background-color: aquamarine;
+    background-color: gray;
 }
 
 .hp-bar {
@@ -128,4 +130,5 @@ body {
 
 #action button {
     margin: 0.5rem;
+    border-radius: 0.5rem;
 }

@@ -140,12 +140,12 @@ function turn(player_move, enemy_moves, playermon, enemymon) {
     if (player_move['pp'] != 0) {
         if (player_speed >= enemy_speed) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-            setTimeout(() => { }, 4000);
+            setTimeout(() => { }, 10000);
             move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-            setTimeout(() => { }, 4000);
+            setTimeout(() => { }, 10000);
             move(enemy_move, [enemymon, playermon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
@@ -441,7 +441,7 @@ async function switchmon(index) {
         playermon = playerteam[index];
         document.getElementById('player_hp_bar').remove();
         let hp_bar = document.createElement('div');
-        hp_bar.style.width = (playermon.battle_stats.hp / playermon.battle_stats.max_hp).toString() + '%';
+        hp_bar.style.width = (playermon.battle_stats.hp / playermon.battle_stats.max_hp * 100).toString() + '%';
         hp_bar.setAttribute('class', 'hp-bar');
         hp_bar.setAttribute('id', 'player_hp_bar')
         document.getElementById('battler0').appendChild(hp_bar);
@@ -462,9 +462,9 @@ async function switchmon(index) {
 
 function updateBackgroundColor() {
     let myDiv = document.getElementById(this.id);
-    var percentage = (myDiv.offsetWidth / myDiv.parentElement.offsetWidth) * 100;
-    var red = 255 - (percentage * 255 / 100);
-    var green = percentage * 255 / 100;
+    let percentage = (myDiv.offsetWidth / myDiv.parentElement.offsetWidth) * 100;
+    let red = 255 - (percentage * 255 / 100);
+    let green = percentage * 255 / 100;
     myDiv.style.backgroundColor = 'rgb(' + red.toString() + ', ' + green.toString() + ', 0)';
 };
 
