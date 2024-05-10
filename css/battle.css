@@ -79,6 +79,14 @@ body {
     left: 5%;
 }
 
+.battlers div {
+    display: flex;
+    /* justify-content: center; */
+    /* align-items: center; */
+    flex-direction: column;
+    padding: auto;
+}
+
 #battler1 {
     top: 50%;
     right: 1%;
@@ -104,6 +112,8 @@ body {
 .hp-bar {
     width: 100%;
     height: 1rem;
+    position: relative;
+    bottom: 6rem;
     background-color: #f0f0f0;
     border: 1px solid black;
     border-radius: 0.5rem;

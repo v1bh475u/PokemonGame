@@ -7,6 +7,10 @@ let playermon = {};
 let enemymon = {};
 import typelookup from "./../JSON/typelookup.json" with { type: "json" };
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 async function getPokemonmoves(pokemon) {
     let moves = pokemon['moves'];
     let chosen_moves = [];
@@ -42,24 +46,21 @@ async function getPokemonmoves(pokemon) {
     return chosen_moves;
 };
 
-function Statusmove(move, battlers, index) {
+async function Statusmove(move, battlers, index) {
     if (move.stat_changes) {
         for (let i = 0; i < move.stat_changes.length; i++) {
             if (move.stat_changes[i]['change'] == -1) {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] -= battlers[0]['battle_stats'][move.stat_changes[i].stat.name] * 0.25;
-                setTimeout(() => {
-                    document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " fell!";
-                }, 1000);
+                document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " fell!";
+                await sleep(1000);
             } else if (move.stat_changes[i]['change'] == 1) {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] += battlers[0]['battle_stats'][move.stat_changes[i].stat.name] * 0.5;
-                setTimeout(() => {
-                    document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " rose!";
-                }, 1000);
+                document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " rose!";
+                await sleep(1000);
             } else {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] += battlers[0]['battle_stats'][move.stat_changes[i].stat.name];
-                setTimeout(() => {
-                    document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " sharply rose!";
-                }, 1000);
+                document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " sharply rose!";
+                await sleep(1000);
             }
         }
     }
@@ -107,7 +108,6 @@ function move(move, battlers) {
             } else {
 
                 document.getElementById('DialogBox').innerText = "The move missed!";
-                setTimeout(() => { }, 4000);
             }
             break;
         }
@@ -120,7 +120,7 @@ function move(move, battlers) {
             } else {
 
                 document.getElementById('DialogBox').innerText = "The move missed!";
-                setTimeout(() => { }, 4000);
+
             }
             break;
         }
@@ -128,7 +128,7 @@ function move(move, battlers) {
     }
 };
 
-function turn(player_move, enemy_moves, playermon, enemymon) {
+async function turn(player_move, enemy_moves, playermon, enemymon) {
     console.log(player_move);
     let enemy_move = enemy_moves[Math.floor(Math.random() * 4) % 4];
     console.log(enemy_move);
@@ -139,54 +139,75 @@ function turn(player_move, enemy_moves, playermon, enemymon) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
             move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            updateBackgroundColor('enemy_hp_bar');
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            setTimeout(() => {
+            updateBackgroundColor('player_hp_bar');
+            await sleep(2000);
+            if (enemymon['battle_stats']['hp'] <= 0) {
+                await sleep(2000);
+                document.getElementById('front').remove();
+                document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
+                enemnymonchoice();
+                await sleep(2000);
+            } else {
                 document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-            }, 1000);
-            move(enemy_move, [enemymon, playermon]);
-            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
-
+                await sleep(2000);
+                move(enemy_move, [enemymon, playermon]);
+                document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
+                document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+                updateBackgroundColor('enemy_hp_bar');
+            }
         } else {
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
             move(enemy_move, [enemymon, playermon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+            updateBackgroundColor('enemy_hp_bar');
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            setTimeout(() => {
+            updateBackgroundColor('player_hp_bar');
+            if (playermon['battle_stats']['hp'] <= 0) {
+                await sleep(2000);
+                document.getElementById('back').remove();
+                document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
+                await sleep(2000);
+                document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+                document.getElementById('action').innerHTML = "";
+                switchmonchoice();
+            } else {
+                await sleep(2000);
                 document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-            }, 1000);
-            move(player_move, [playermon, enemymon]);
-            document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
-            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
+                await sleep(2000);
+                move(player_move, [playermon, enemymon]);
+                document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+                updateBackgroundColor('enemy_hp_bar');
+                document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
+                updateBackgroundColor('player_hp_bar');
+            }
         }
         console.log('playermon', playermon['battle_stats']['hp']);
         console.log('enemymon', enemymon['battle_stats']['hp']);
         enemy_move['pp']--;
         player_move['pp']--;
         if (enemymon['battle_stats']['hp'] <= 0) {
-            setTimeout(() => {
-                document.getElementById('front').remove();
-                document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
-                enemnymonchoice();
-            }, 1000);
+            await sleep(2000);
+            document.getElementById('front').remove();
+            document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
+            enemnymonchoice();
+            await sleep(2000);
         }
         if (playermon['battle_stats']['hp'] <= 0) {
-            setTimeout(() => {
-                document.getElementById('back').remove();
-                document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
-            }, 1000);
-            setTimeout(() => {
-                document.getElementById('DialogBox').innerText = "Choose another pokemon!";
-                document.getElementById('action').innerHTML = "";
-                switchmonchoice();
-            }, 1000);
-
+            await sleep(2000);
+            document.getElementById('back').remove();
+            document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
+            await sleep(2000);
+            document.getElementById('DialogBox').innerText = "Choose another pokemon!";
+            document.getElementById('action').innerHTML = "";
+            switchmonchoice();
         }
         game(playerteam, enemyteam);
     } else {
         document.getElementById('DialogBox').innerText = "There's no pp left for this move!";
-        setTimeout(() => {
-            choice();
-        }, 1000);
+        await sleep(2000);
+        choice();
     }
 };
 
@@ -203,9 +224,10 @@ async function enemnymonchoice() {
     img.style.position = 'absolute';
     img.style.bottom = '60%';
     img.style.margin = '0 auto';
-    document.getElementById('battler1').appendChild(img);
+    document.getElementById('battler1').querySelector('div').appendChild(img);
     enemymon = enemyteam[x];
     document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
+    updateBackgroundColor('enemy_hp_bar');
     for (let i = 0; i < 4; i++) {
         x = Math.floor(Math.random() * enemymon.moves.length) % enemymon.moves.length;
         let chosen_move = {};
@@ -286,16 +308,16 @@ function gameloop() {
     document.getElementById('battle-frame').style.backgroundImage = "url(./assets/Graphics/BattleBG/" + battlebacks[x] + "_bg.png)";
     document.getElementById('battle-frame').style.backgroundSize = "cover";
     document.getElementById('battle-frame').style.backgroundRepeat = "no-repeat";
-    if (battlebacks[x].startsWith('forest')) {
-        document.getElementById('base0').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
-        document.getElementById('base1').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
-    } else if (battlebacks[x].startsWith('city')) {
-        document.getElementById('base0').src = "./assets/Graphics/Battlebacks/city_base1.png";
-        document.getElementById('base1').src = "./assets/Graphics/Battlebacks/city_base1.png";
-    } else {
-        document.getElementById('base0').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
-        document.getElementById('base1').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
-    }
+    // if (battlebacks[x].startsWith('forest')) {
+    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
+    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
+    // } else if (battlebacks[x].startsWith('city')) {
+    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/city_base1.png";
+    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/city_base1.png";
+    // } else {
+    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
+    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
+    // }
 };
 
 async function battle() {
@@ -312,13 +334,16 @@ async function battle() {
     img.setAttribute('id', 'front');
     img.style.position = 'absolute';
     img.style.bottom = '60%';
-    document.getElementById('battler1').appendChild(img);
+    await document.getElementById('battler1').querySelector('div').appendChild(img);
+    let base = await document.getElementById('base1').width;
+    img = document.getElementById('front');
+    // img.style.right = (-56 + base / 2 - img.width / 2).toString() + '%';
     img = document.createElement('img');
     img.src = back['sprites']['other']['showdown']['back_default'];
     img.setAttribute('id', 'back');
     img.style.position = 'absolute';
     img.style.bottom = '60%';
-    document.getElementById('battler0').appendChild(img);
+    document.getElementById('battler0').querySelector('div').appendChild(img);
     playermon = playerteam[0];
     enemymon = enemyteam[0];
     playermoves = await getPokemonmoves(playermon);
@@ -328,15 +353,15 @@ async function battle() {
     let hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
-    hp_bar.setAttribute('id', 'player_hp_bar')
-    document.getElementById('battler0').appendChild(hp_bar);
-    document.getElementById('player_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
+    hp_bar.style.backgroundColor = '#a0e515';
+    hp_bar.setAttribute('id', 'player_hp_bar');
+    document.getElementById('battler0').querySelector('div').appendChild(hp_bar);
     hp_bar = document.createElement('div');
     hp_bar.setAttribute('class', 'hp-bar');
     hp_bar.style.width = '100%';
-    hp_bar.setAttribute('id', 'enemy_hp_bar')
-    document.getElementById('battler1').appendChild(hp_bar);
-    document.getElementById('enemy_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
+    hp_bar.style.backgroundColor = '#a0e515';
+    hp_bar.setAttribute('id', 'enemy_hp_bar');
+    document.getElementById('battler1').querySelector('div').appendChild(hp_bar);
     document.getElementById('DialogBox').innerText = "What will you do?";
     document.getElementById('action').innerHTML = "";
     let choice = document.createElement('button');
@@ -429,7 +454,7 @@ async function switchmon(index) {
         img.style.position = 'absolute';
         img.style.bottom = '60%';
         img.style.margin = '0 auto';
-        document.getElementById('battler0').appendChild(img);
+        document.getElementById('battler0').querySelector('div').appendChild(img);
         playermon = playerteam[index];
         if (playermon.battle_moves == undefined) {
             playermoves = await getPokemonmoves(playermon);
@@ -442,8 +467,8 @@ async function switchmon(index) {
         hp_bar.style.width = (playermon.battle_stats.hp / playermon.battle_stats.max_hp * 100).toString() + '%';
         hp_bar.setAttribute('class', 'hp-bar');
         hp_bar.setAttribute('id', 'player_hp_bar')
-        document.getElementById('battler0').appendChild(hp_bar);
-        document.getElementById('player_hp_bar').addEventListener('resize', () => { updateBackgroundColor() });
+        document.getElementById('battler0').querySelector('div').appendChild(hp_bar);
+        updateBackgroundColor('player_hp_bar');
         document.getElementById('DialogBox').innerText = "What will you do?";
         let choice = document.createElement('button');
         choice.innerText = "Switch";
@@ -458,12 +483,18 @@ async function switchmon(index) {
     }
 };
 
-function updateBackgroundColor() {
-    let myDiv = document.getElementById(this.id);
-    let percentage = (myDiv.offsetWidth / myDiv.parentElement.offsetWidth) * 100;
-    let red = 255 - (percentage * 255 / 100);
-    let green = percentage * 255 / 100;
-    myDiv.style.backgroundColor = 'rgb(' + red.toString() + ', ' + green.toString() + ', 0)';
+function updateBackgroundColor(id) {
+    let myDiv = document.getElementById(id);
+    let percentage = parseFloat(myDiv.style.width);
+    if (percentage < 20) {
+        myDiv.style.backgroundColor = '#f34444';
+    } else if (percentage < 50) {
+        myDiv.style.backgroundColor = '#ff7f0f';
+    } else if (percentage < 75) {
+        myDiv.style.backgroundColor = '#ffdd57';
+    } else {
+        myDiv.style.backgroundColor = "#a0e515";
+    }
 };
 
 window.onload = () => { gameloop() };
