@@ -49,17 +49,17 @@ function Statusmove(move, battlers, index) {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] -= battlers[0]['battle_stats'][move.stat_changes[i].stat.name] * 0.25;
                 setTimeout(() => {
                     document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " fell!";
-                }, 4000);
+                }, 1000);
             } else if (move.stat_changes[i]['change'] == 1) {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] += battlers[0]['battle_stats'][move.stat_changes[i].stat.name] * 0.5;
                 setTimeout(() => {
                     document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " rose!";
-                }, 4000);
+                }, 1000);
             } else {
                 battlers[index]['battle_stats'][move.stat_changes[i]['stat']] += battlers[0]['battle_stats'][move.stat_changes[i].stat.name];
                 setTimeout(() => {
                     document.getElementById('DialogBox').innerText = battlers[index]['name'] + "'s " + move.stat_changes[i].stat.name + " sharply rose!";
-                }, 4000);
+                }, 1000);
             }
         }
     }
@@ -82,7 +82,6 @@ function factorcalc(move, battlers) {
         let effectmusic = new Audio('./assets/Music/Battle damage super.ogg');
         effectmusic.play();
     }
-    setTimeout(() => { }, 1000);
     return factor;
 };
 
@@ -103,7 +102,6 @@ function move(move, battlers) {
             if (move.accuracy > Math.floor(Math.random() * 50)) {
                 damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['attack'] * move['power'] / battlers[1]['battle_stats']['defense'] / 50));
                 damage *= factorcalc(move, battlers);
-                setTimeout(() => { }, 4000);
                 console.log(damage);
                 battlers[1]['battle_stats']['hp'] = Math.max(battlers[1]['battle_stats']['hp'] - damage, 0);
             } else {
@@ -117,7 +115,6 @@ function move(move, battlers) {
             if (move.accuracy > Math.floor(Math.random() * 50)) {
                 damage = Math.floor(Math.floor(Math.floor(2 * battlers[0]['level'] / 5 + 2) * battlers[0]['battle_stats']['special-attack'] * move['power'] / battlers[1]['battle_stats']['special-defense'] / 50));
                 damage *= factorcalc(move, battlers);
-                setTimeout(() => { }, 4000);
                 console.log(damage);
                 battlers[1]['battle_stats']['hp'] = Math.max(battlers[1]['battle_stats']['hp'] - damage, 0);
             } else {
@@ -140,23 +137,23 @@ function turn(player_move, enemy_moves, playermon, enemymon) {
     if (player_move['pp'] != 0) {
         if (player_speed >= enemy_speed) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-            setTimeout(() => { }, 10000);
             move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-            setTimeout(() => { }, 10000);
+            setTimeout(() => {
+                document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
+            }, 1000);
             move(enemy_move, [enemymon, playermon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
-            document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
+
         } else {
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-            setTimeout(() => { }, 4000);
             move(enemy_move, [enemymon, playermon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
-            document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-            setTimeout(() => { }, 4000);
+            setTimeout(() => {
+                document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
+            }, 1000);
             move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
@@ -181,14 +178,15 @@ function turn(player_move, enemy_moves, playermon, enemymon) {
                 document.getElementById('DialogBox').innerText = "Choose another pokemon!";
                 document.getElementById('action').innerHTML = "";
                 switchmonchoice();
-            }, 4000);
+            }, 1000);
 
         }
         game(playerteam, enemyteam);
     } else {
         document.getElementById('DialogBox').innerText = "There's no pp left for this move!";
-        setTimeout(() => { }, 4000);
-        choice();
+        setTimeout(() => {
+            choice();
+        }, 1000);
     }
 };
 
@@ -232,7 +230,8 @@ async function enemnymonchoice() {
         chosen_move['stat_changes'] = data['stat_changes'];
         enemymoves[i] = chosen_move;
     }
-}
+};
+
 function game(playerteam, enemyteam) {
     let win = 0;
     let gameover = 1;
@@ -275,6 +274,7 @@ function choice() {
 
 let battlemusic = new Audio('./assets/Music/fireleafbattle.ogg');
 battlemusic.loop = true;
+
 function gameloop() {
     document.getElementById('DialogBox').innerText = "Would you like to battle?";
     let start = document.createElement('button');
@@ -312,14 +312,12 @@ async function battle() {
     img.setAttribute('id', 'front');
     img.style.position = 'absolute';
     img.style.bottom = '60%';
-    img.style.margin = '0 auto';
     document.getElementById('battler1').appendChild(img);
     img = document.createElement('img');
     img.src = back['sprites']['other']['showdown']['back_default'];
     img.setAttribute('id', 'back');
     img.style.position = 'absolute';
     img.style.bottom = '60%';
-    img.style.margin = '0 auto';
     document.getElementById('battler0').appendChild(img);
     playermon = playerteam[0];
     enemymon = enemyteam[0];
