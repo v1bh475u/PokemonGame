@@ -86,7 +86,7 @@ function factorcalc(move, battlers) {
     return factor;
 };
 
-function move(move, battlers) {
+async function move(move, battlers) {
     let damage = 0;
     switch (move.damage_class) {
         case 'status': {
@@ -137,7 +137,8 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
     if (player_move['pp'] != 0) {
         if (player_speed >= enemy_speed) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-            move(player_move, [playermon, enemymon]);
+
+            await move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             updateBackgroundColor('enemy_hp_bar');
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
@@ -145,28 +146,31 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
             await sleep(2000);
             if (enemymon['battle_stats']['hp'] <= 0) {
                 await sleep(2000);
-                document.getElementById('front').remove();
-                document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
+                try {
+                    document.getElementById('front').remove();
+                } catch (err) { }; document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
                 enemnymonchoice();
                 await sleep(2000);
             } else {
                 document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
                 await sleep(2000);
-                move(enemy_move, [enemymon, playermon]);
+                await move(enemy_move, [enemymon, playermon]);
                 document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
                 document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
                 updateBackgroundColor('enemy_hp_bar');
             }
         } else {
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " used " + enemy_move['name'] + "!";
-            move(enemy_move, [enemymon, playermon]);
+            await move(enemy_move, [enemymon, playermon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             updateBackgroundColor('enemy_hp_bar');
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
             updateBackgroundColor('player_hp_bar');
             if (playermon['battle_stats']['hp'] <= 0) {
                 await sleep(2000);
-                document.getElementById('back').remove();
+                try {
+                    document.getElementById('back').remove();
+                } catch (err) { };
                 document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
                 await sleep(2000);
                 document.getElementById('DialogBox').innerText = "Choose another pokemon!";
@@ -176,7 +180,7 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
                 await sleep(2000);
                 document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
                 await sleep(2000);
-                move(player_move, [playermon, enemymon]);
+                await move(player_move, [playermon, enemymon]);
                 document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
                 updateBackgroundColor('enemy_hp_bar');
                 document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
@@ -188,19 +192,24 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
         enemy_move['pp']--;
         player_move['pp']--;
         if (enemymon['battle_stats']['hp'] <= 0) {
+            document.getElementById('action').innerHTML = "";
             await sleep(2000);
-            document.getElementById('front').remove();
+            try {
+                document.getElementById('front').remove();
+            } catch (err) { };
             document.getElementById('DialogBox').innerText = "The enemy's " + enemymon['name'] + " fainted!";
             enemnymonchoice();
             await sleep(2000);
         }
         if (playermon['battle_stats']['hp'] <= 0) {
+            document.getElementById('action').innerHTML = "";
             await sleep(2000);
-            document.getElementById('back').remove();
+            try {
+                document.getElementById('back').remove();
+            } catch (err) { };
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " fainted!";
             await sleep(2000);
             document.getElementById('DialogBox').innerText = "Choose another pokemon!";
-            document.getElementById('action').innerHTML = "";
             switchmonchoice();
         }
         game(playerteam, enemyteam);
@@ -382,7 +391,7 @@ function attackchoice(playermoves, enemymoves) {
         move.innerText = playermoves[i]['name'];
         move.setAttribute('id', 'move' + i.toString());
         document.getElementById('action').appendChild(move);
-        document.getElementById('move' + i.toString()).addEventListener('click', () => { turn(playermoves[i], enemymoves, playermon, enemymon) });
+        document.getElementById('move' + i.toString()).addEventListener('click', () => { turn(playermoves[i], enemymoves, playermon, enemymon); document.getElementById('action').innerHTML = ""; });
     }
 };
 
