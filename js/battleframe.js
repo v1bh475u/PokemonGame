@@ -137,7 +137,6 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
     if (player_move['pp'] != 0) {
         if (player_speed >= enemy_speed) {
             document.getElementById('DialogBox').innerText = "The player's " + playermon['name'] + " used " + player_move['name'] + "!";
-
             await move(player_move, [playermon, enemymon]);
             document.getElementById('enemy_hp_bar').style.width = (Math.max(enemymon['battle_stats']['hp'], 0) / enemymon['battle_stats']['max_hp'] * 100).toString() + '%';
             updateBackgroundColor('enemy_hp_bar');
@@ -145,6 +144,7 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
             updateBackgroundColor('player_hp_bar');
             await sleep(2000);
             if (enemymon['battle_stats']['hp'] <= 0) {
+                document.getElementById('action').innerHTML = "";
                 await sleep(2000);
                 try {
                     document.getElementById('front').remove();
@@ -167,6 +167,7 @@ async function turn(player_move, enemy_moves, playermon, enemymon) {
             document.getElementById('player_hp_bar').style.width = (Math.max(playermon['battle_stats']['hp'], 0) / playermon['battle_stats']['max_hp'] * 100).toString() + '%';
             updateBackgroundColor('player_hp_bar');
             if (playermon['battle_stats']['hp'] <= 0) {
+                document.getElementById('action').innerHTML = "";
                 await sleep(2000);
                 try {
                     document.getElementById('back').remove();
