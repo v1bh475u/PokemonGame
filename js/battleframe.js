@@ -90,6 +90,7 @@ async function move(move, battlers) {
     let damage = 0;
     switch (move.damage_class) {
         case 'status': {
+            await sleep(2000);
             if (move.target == 'user') {
                 battlers[0]['battle_stats']['hp'] += move.healing % battlers[0].battle_stats.max_hp;
                 Statusmove(move, battlers, 0);
@@ -284,8 +285,10 @@ function game(playerteam, enemyteam) {
         } else
             document.getElementById('DialogBox').innerText = "You lose!";
     } else {
-        if (playermon.battle_stats.hp >= 0)
+        if (playermon.battle_stats.hp > 0)
             choice();
+        else
+            switchmonchoice();
     }
 };
 
