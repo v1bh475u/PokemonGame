@@ -13,14 +13,14 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     font-family: 'PKMNFONT';
+    display: flex;
 }
 
 #options {
-    width: var(--width);
-    margin: 0.5rem auto;
+    margin: auto 0;
     display: flex;
-    justify-content: space-between;
-    padding: 0 1rem;
+    flex-direction: column;
+
 }
 
 .region {
@@ -30,12 +30,15 @@ body {
     border-radius: 1rem;
     padding: .5rem;
     cursor: pointer;
-    margin-inline: .5rem;
-
+    margin: 1rem;
 }
 
 .region:hover {
     background-color: lightgray;
+}
+
+#center {
+    margin: auto;
 }
 
 #search-box {

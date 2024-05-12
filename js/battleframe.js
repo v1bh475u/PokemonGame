@@ -321,16 +321,6 @@ function gameloop() {
     document.getElementById('battle-frame').style.backgroundImage = "url(./assets/Graphics/BattleBG/" + battlebacks[x] + "_bg.png)";
     document.getElementById('battle-frame').style.backgroundSize = "cover";
     document.getElementById('battle-frame').style.backgroundRepeat = "no-repeat";
-    // if (battlebacks[x].startsWith('forest')) {
-    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
-    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/grass" + battlebacks[x].substring(6, battlebacks[x].length) + "_base1.png";
-    // } else if (battlebacks[x].startsWith('city')) {
-    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/city_base1.png";
-    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/city_base1.png";
-    // } else {
-    //     document.getElementById('base0').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
-    //     document.getElementById('base1').src = "./assets/Graphics/Battlebacks/" + battlebacks[x] + "_base1.png";
-    // }
 };
 
 async function battle() {
@@ -350,7 +340,6 @@ async function battle() {
     await document.getElementById('battler1').querySelector('div').appendChild(img);
     let base = await document.getElementById('base1').width;
     img = document.getElementById('front');
-    // img.style.right = (-56 + base / 2 - img.width / 2).toString() + '%';
     img = document.createElement('img');
     img.src = back['sprites']['other']['showdown']['back_default'];
     img.setAttribute('id', 'back');

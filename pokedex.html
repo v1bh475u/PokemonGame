@@ -19,73 +19,75 @@
         <div id="Kalos" class="region" onclick="ChangeRegion(this.id)">Kalos</div>
         <div id="Alola" class="region" onclick="ChangeRegion(this.id)">Alola</div>
         <div id="Galar" class="region" onclick="ChangeRegion(this.id)">Galar</div>
-    </div>
-    <div id="search-box">
-        <input type="text" id="search" placeholder="Search Pokemon" oninput="SearchPokemon()">
-    </div>
-    <div id="home">
-        <img src="./assets/images/ball_small.png" alt="Pokeball" id="pokeball" title="Home" onclick="Home()">
-    </div>
-    <div id="content-box">
-        <div id="poke-info">
-            <img id="poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
-                onclick="sound()">
-            <div id="poke-types">
-                <span class="type-box grass">GRASS</span><span class="type-box poison">POISON</span>
-            </div>
-            <div id="poke-description"></div>
-            <div id="abilities">
-                <span class="ability">Overgrow</span>
-                <span class="ability">Chlorophyll</span>
-            </div>
-            <table id="poke-stats">
-                <tr class="stat" id="HP">
-                    <td class="stat-name">HP</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="HP-bar">
-                        </div>
-                    </td>
-                </tr>
-                <tr class="stat" id="Atk">
-                    <td class="stat-name">Atk</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="Atk-bar"></div>
-                    </td>
-                </tr>
-
-                <tr class="stat" id="SpA">
-                    <td class="stat-name">SpA</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="SpA-bar"></div>
-                    </td>
-                </tr>
-                <tr class="stat" id="Def">
-                    <td class="stat-name">Def</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="Def-bar"></div>
-                    </td>
-                </tr>
-                <tr class="stat" id="SpD">
-                    <td class="stat-name">SpD</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="SpD-bar"></div>
-                    </td>
-                </tr>
-                <tr class="stat" id="Spe">
-                    <td class="stat-name">Spe</td>
-                    <td class="stat-value"></td>
-                    <td class="stat-bar">
-                        <div class="bar-graph" id="Spe-bar"></div>
-                    </td>
-                </tr>
-            </table>
+        <div id="home">
+            <img src="./assets/images/ball_small.png" alt="Pokeball" id="pokeball" title="Home" onclick="Home()">
         </div>
-        <div id="poke-list"></div>
+    </div>
+    <div id="center">
+        <div id="search-box">
+            <input type="text" id="search" placeholder="Search Pokemon" oninput="SearchPokemon()">
+        </div>
+        <div id="content-box">
+            <div id="poke-info">
+                <img id="poke-img" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"
+                    onclick="sound()">
+                <div id="poke-types">
+                    <span class="type-box grass">GRASS</span><span class="type-box poison">POISON</span>
+                </div>
+                <div id="poke-description"></div>
+                <div id="abilities">
+                    <span class="ability">Overgrow</span>
+                    <span class="ability">Chlorophyll</span>
+                </div>
+                <table id="poke-stats">
+                    <tr class="stat" id="HP">
+                        <td class="stat-name">HP</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="HP-bar">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="stat" id="Atk">
+                        <td class="stat-name">Atk</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="Atk-bar"></div>
+                        </td>
+                    </tr>
+
+                    <tr class="stat" id="SpA">
+                        <td class="stat-name">SpA</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="SpA-bar"></div>
+                        </td>
+                    </tr>
+                    <tr class="stat" id="Def">
+                        <td class="stat-name">Def</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="Def-bar"></div>
+                        </td>
+                    </tr>
+                    <tr class="stat" id="SpD">
+                        <td class="stat-name">SpD</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="SpD-bar"></div>
+                        </td>
+                    </tr>
+                    <tr class="stat" id="Spe">
+                        <td class="stat-name">Spe</td>
+                        <td class="stat-value"></td>
+                        <td class="stat-bar">
+                            <div class="bar-graph" id="Spe-bar"></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="poke-list"></div>
+        </div>
 </body>
 
 </html>
